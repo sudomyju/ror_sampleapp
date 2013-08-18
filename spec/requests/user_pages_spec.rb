@@ -83,6 +83,15 @@ describe "User pages" do
       it { should have_link('Sign out', href: signout_path) }
       specify { expect(user.reload.name).to eq new_name }
       specify { expect(user.reload.email).to eq new_email }
+
+      describe "after saving the user" do 
+        before { click_button submit }
+        let(:user) { User.find_by(email: 'user@example.com') }
+
+        it { should have_link('Sign on') }
+        it { should have_title(user.name) }
+        it { should have_selector('div.alert.alert-success', text: 'Wellcome') }
+      end
     end
   end
 end
