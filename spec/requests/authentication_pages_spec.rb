@@ -1,8 +1,11 @@
 require 'spec_helper'
 
 describe "Authentication" do
-
   subject { page }
+  let(:user) { FactoryGirl.create(:user) }
+  let(:wrong_user) { FactoryGirl.create(:user, email: "wrong@example.com") }
+  let(:non_admin) { FactoryGirl.create(:user) }
+  let(:submit) { "Sign in"}
   
   describe "signin" do
     
@@ -12,7 +15,7 @@ describe "Authentication" do
 
       before { click_button "Sign in" }
       
-      it { should have_selector('title', text: 'Sign up') }
+      it { should have_selector('title', text: 'Sign in') }
       it { should have_selector('div.alert.alert-error', text: 'Invalid') }
       
       describe "after visiting another page" do
@@ -22,16 +25,6 @@ describe "Authentication" do
     end
 
     describe "with valid information" do
-      let(:user) { FactoryGirl.create(:user) }
-    #  before do
-    #    fill_in "Email",    with: user.email.upcase
-    #    fill_in "Password", with: user.password
-    #    click_button "Sign in"
-    #  end
-    # ...should be solved by .. 
-    #  before { valid_sigin(user) }
-
-      #even another before should be here .... 
       before { sign_in user }
 
       it { should have_title(user.name) }
@@ -53,12 +46,11 @@ describe "Authentication" do
 
 
     describe "for-non-signed-in users" do
-      let(:user) { FactoryGirl.create(:user) }
 
       describe "when atempting to visit a protected page" do
         before do
           visit edit_user_path(user)
-          fill_in "Email",      with: user.mail
+          fill_in "Email",      with: user.email
           fill_in "Password",   with: user.password
           click_button "Sign in"
         end
@@ -66,7 +58,7 @@ describe "Authentication" do
         describe "after signing in" do
           
           it "should render the desired protected page" do
-            expect(page).to have_title('Edit user')
+            page.should have_title('Edit user')
           end
         end
 
@@ -74,7 +66,7 @@ describe "Authentication" do
           before do
             delete signout_path
             visit signin_path
-            fill_in "Email",      with: user.mail
+            fill_in "Email",      with: user.email
             fill_in "Password",   with: user.password
             click_button "Sign in"
           end
@@ -98,20 +90,18 @@ describe "Authentication" do
         end
 
         describe "visiting the user index" do
-          before { visit users_ath }
+          before { visit users_path }
           it { should have_title('Sign in') }
         end
       end
     end
 
     describe "as a wrong user" do
-      let(:user) { Factory.Girl.create(:user) }
-      let(:wrong_user) { FactoryGirl.create(:user, email: "wrong@example.com") }
       before { sign_in user, no_capybara: true }
 
       describe "visiting Users#edit page" do
         before { visit edit_user_path(wrong_user) }
-        it { shoukd_not have_title(full_title('Edit user')) }
+        it { should_not have_title(full_title('Edit user')) }
       end
 
       describe "submiting a PATCH request to the Users#update action" do
@@ -121,8 +111,6 @@ describe "Authentication" do
     end
 
     describe "as non-admin user" do
-      let(:user) { FactoryGirl.create(:user) }
-      let(:non_admin) { FactoryGirl.create(:user) }
 
       before { sign_in non_admin, no_capybara: true }
 
